@@ -7,6 +7,7 @@ import { Package, CheckCircle, Clock, Truck, XCircle, ArrowRight } from 'lucide-
 import { getUser } from '@/lib/auth';
 import { getCustomerByAuthId } from '@/lib/customers';
 import { getOrdersByPhone, type Order } from '@/lib/orders';
+import { supabase } from '@/lib/supabase';
 import { formatPrice } from '@/lib/products';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -64,19 +65,66 @@ export default function TrackingPage() {
         }
 
         // Get customer info
-        const { data: customer, error: customerError } = await getCustomerByAuthId(
+        let { data: customer, error: customerError } = await getCustomerByAuthId(
           authUser.user.id
         );
 
-        if (customerError) {
-          console.error('Customer error:', customerError);
-          setError('Impossible de charger vos informations. Veuillez vous reconnecter.');
-          setLoading(false);
-          return;
+        // If customer doesn't exist, try to migrate/create it
+        if (customerError || !customer) {
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Customer not found, attempting migration...', customerError);
+          }
+          
+          // Try to migrate/create customer
+          try {
+            const { data: sessionData } = await supabase.auth.getSession();
+            if (sessionData?.session?.access_token) {
+              const migrateResponse = await fetch('/api/migrate-user', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${sessionData.session.access_token}`,
+                  'Content-Type': 'application/json',
+                },
+              });
+              
+              if (migrateResponse.ok) {
+                // Retry getting customer after migration
+                const retryResult = await getCustomerByAuthId(authUser.user.id);
+                customer = retryResult.data;
+                customerError = retryResult.error;
+              }
+            }
+          } catch (migrateErr) {
+            if (process.env.NODE_ENV === 'development') {
+              console.error('Migration error:', migrateErr);
+            }
+          }
         }
 
-        if (!customer) {
-          setError('Profil utilisateur non trouvé. Veuillez vous reconnecter.');
+        if (customerError || !customer) {
+          // If still no customer, try to get phone from user metadata as fallback
+          const phoneFromMetadata = authUser.user.user_metadata?.phone || authUser.user.phone;
+          
+          if (phoneFromMetadata) {
+            // Use phone from metadata directly
+            const { data: ordersData, error: ordersError } = await getOrdersByPhone(phoneFromMetadata);
+            
+            if (ordersError) {
+              setError('Erreur lors du chargement de vos commandes');
+              if (process.env.NODE_ENV === 'development') {
+                console.error('Orders error:', ordersError);
+              }
+            } else {
+              const sortedOrders = (ordersData || []).sort((a, b) => 
+                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+              );
+              setOrders(sortedOrders);
+            }
+            setLoading(false);
+            return;
+          }
+          
+          setError('Profil utilisateur non trouvé. Veuillez mettre à jour votre profil.');
           setLoading(false);
           return;
         }
