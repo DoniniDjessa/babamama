@@ -119,3 +119,10 @@ input[type="range"]::-moz-range-track {
   background: transparent;
   height: 2px;
 }
+
+/* Ensure navbar stays on top */
+nav[class*="sticky"] {
+  position: sticky !important;
+  z-index: 100 !important;
+  background-color: white !important;
+}

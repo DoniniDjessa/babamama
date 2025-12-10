@@ -9,7 +9,7 @@ export default function HeroSection() {
   const [imageError, setImageError] = useState(false);
 
   return (
-    <div className="relative w-full h-[280px] sm:h-[320px] md:h-[400px] overflow-hidden rounded-b-3xl shadow-sm">
+    <div className="relative w-full h-[280px] sm:h-[320px] md:h-[400px] overflow-hidden rounded-b-3xl shadow-sm z-0">
       {/* Background Image */}
       <div className="absolute inset-0">
         {!imageError ? (

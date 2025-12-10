@@ -126,9 +126,9 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+      <nav className="sticky top-0 z-[100] bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-sm">
       {/* Top Bar - Branding & Tools */}
-      <div className="border-b border-slate-200">
+      <div className="border-b border-slate-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
             {/* Mobile Menu Button */}
@@ -295,7 +295,7 @@ export default function Navbar() {
       </div>
 
       {/* Menu Bar - Navigation (Desktop only) */}
-      <div className="hidden md:block bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
+      <div className="hidden md:block bg-gradient-to-r from-slate-50 to-white border-b border-slate-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-10 overflow-x-auto scrollbar-hide">
             <div className="flex items-center gap-0.5 min-w-max">

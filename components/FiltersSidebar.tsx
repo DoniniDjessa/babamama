@@ -245,7 +245,7 @@ export default function FiltersSidebar({
                 {/* Input fields */}
                 <div className="flex gap-2">
                   <div className="flex-1">
-                    <label className="font-body text-xs text-slate-500 mb-1 block">Min</label>
+                    <label className="font-body text-xs text-slate-500 mb-1 block">Prix minimum (FCFA)</label>
                     <input
                       type="number"
                       min={priceRange.min}
@@ -253,26 +253,44 @@ export default function FiltersSidebar({
                       step={1000}
                       value={localPriceRange[0]}
                       onChange={(e) => {
-                        const val = Number(e.target.value);
-                        if (val >= priceRange.min && val <= localPriceRange[1] - 1000) {
+                        const inputVal = e.target.value;
+                        // Allow empty input during typing
+                        if (inputVal === '') {
+                          setLocalPriceRange([priceRange.min, localPriceRange[1]]);
+                          return;
+                        }
+                        const val = Number(inputVal);
+                        // Allow any number during typing, validate on blur
+                        if (!isNaN(val)) {
                           setLocalPriceRange([val, localPriceRange[1]]);
                           filters.setPriceChip(undefined);
                         }
                       }}
                       onBlur={(e) => {
                         const val = Number(e.target.value);
-                        if (val < priceRange.min) {
+                        if (isNaN(val) || val < priceRange.min) {
                           setLocalPriceRange([priceRange.min, localPriceRange[1]]);
                         } else if (val >= localPriceRange[1]) {
                           setLocalPriceRange([Math.max(priceRange.min, localPriceRange[1] - 1000), localPriceRange[1]]);
+                        } else {
+                          setLocalPriceRange([val, localPriceRange[1]]);
+                        }
+                        filters.setPriceChip(undefined);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.currentTarget.blur();
                         }
                       }}
-                      className="font-body w-full px-3 py-2 text-sm rounded-lg border border-slate-300 text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      placeholder="Min"
+                      className="font-body w-full px-3 py-2.5 text-sm rounded-lg border border-slate-300 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                      placeholder={`Min: ${formatPrice(priceRange.min)}`}
                     />
                   </div>
+                  <div className="flex items-end pb-6">
+                    <span className="font-body text-slate-400 text-sm">à</span>
+                  </div>
                   <div className="flex-1">
-                    <label className="font-body text-xs text-slate-500 mb-1 block">Max</label>
+                    <label className="font-body text-xs text-slate-500 mb-1 block">Prix maximum (FCFA)</label>
                     <input
                       type="number"
                       min={priceRange.min}
@@ -280,22 +298,37 @@ export default function FiltersSidebar({
                       step={1000}
                       value={localPriceRange[1]}
                       onChange={(e) => {
-                        const val = Number(e.target.value);
-                        if (val <= priceRange.max && val >= localPriceRange[0] + 1000) {
+                        const inputVal = e.target.value;
+                        // Allow empty input during typing
+                        if (inputVal === '') {
+                          setLocalPriceRange([localPriceRange[0], priceRange.max]);
+                          return;
+                        }
+                        const val = Number(inputVal);
+                        // Allow any number during typing, validate on blur
+                        if (!isNaN(val)) {
                           setLocalPriceRange([localPriceRange[0], val]);
                           filters.setPriceChip(undefined);
                         }
                       }}
                       onBlur={(e) => {
                         const val = Number(e.target.value);
-                        if (val > priceRange.max) {
+                        if (isNaN(val) || val > priceRange.max) {
                           setLocalPriceRange([localPriceRange[0], priceRange.max]);
                         } else if (val <= localPriceRange[0]) {
                           setLocalPriceRange([localPriceRange[0], Math.min(priceRange.max, localPriceRange[0] + 1000)]);
+                        } else {
+                          setLocalPriceRange([localPriceRange[0], val]);
+                        }
+                        filters.setPriceChip(undefined);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.currentTarget.blur();
                         }
                       }}
-                      className="font-body w-full px-3 py-2 text-sm rounded-lg border border-slate-300 text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      placeholder="Max"
+                      className="font-body w-full px-3 py-2.5 text-sm rounded-lg border border-slate-300 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                      placeholder={`Max: ${formatPrice(priceRange.max)}`}
                     />
                   </div>
                 </div>
