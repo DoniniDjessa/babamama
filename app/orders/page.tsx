@@ -176,8 +176,8 @@ export default function OrdersPage() {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
               <XCircle className="w-8 h-8 text-red-600" />
             </div>
-            <h2 className="font-title text-xl font-bold text-slate-900 mb-2">Erreur</h2>
-            <p className="font-body text-sm text-slate-600 mb-6">{error}</p>
+            <h2 className="font-title text-sm font-bold text-slate-900 mb-2">Erreur</h2>
+            <p className="font-body text-[11px] text-slate-600 mb-6">{error}</p>
             <Link
               href="/"
               className="font-body inline-block px-6 py-3 bg-indigo-600 text-white rounded-full font-medium hover:bg-indigo-700 transition-colors"
@@ -205,7 +205,7 @@ export default function OrdersPage() {
     <div className="min-h-[calc(100vh-100px)] bg-slate-50 pb-6">
       <div className="max-w-4xl mx-auto px-4 py-6">
         <AnimatedContainer direction="up" delay={0.1}>
-          <h1 className="font-title text-2xl sm:text-3xl font-bold text-slate-900 mb-6">
+          <h1 className="font-title text-sm font-bold text-slate-900 mb-6">
             Mes Commandes
           </h1>
         </AnimatedContainer>
@@ -215,7 +215,7 @@ export default function OrdersPage() {
           <div className="flex gap-2 mb-6 border-b border-slate-200">
             <button
               onClick={() => setActiveTab('recent')}
-              className={`font-body px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              className={`font-body px-4 py-2 text-[11px] font-medium border-b-2 transition-colors ${
                 activeTab === 'recent'
                   ? 'border-indigo-600 text-indigo-600'
                   : 'border-transparent text-slate-500 hover:text-slate-700'
@@ -225,13 +225,13 @@ export default function OrdersPage() {
             </button>
             <button
               onClick={() => setActiveTab('all')}
-              className={`font-body px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+              className={`font-body px-4 py-2 text-[11px] font-medium border-b-2 transition-colors flex items-center gap-2 ${
                 activeTab === 'all'
                   ? 'border-indigo-600 text-indigo-600'
                   : 'border-transparent text-slate-500 hover:text-slate-700'
               }`}
             >
-              <Archive className="w-4 h-4" />
+              <Archive className="w-3.5 h-3.5" />
               Toutes les commandes ({allOrders.length})
             </button>
           </div>
@@ -244,10 +244,10 @@ export default function OrdersPage() {
               <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-slate-100 flex items-center justify-center">
                 <Package className="w-12 h-12 text-slate-400" />
               </div>
-              <h2 className="font-title text-xl font-bold text-slate-900 mb-2">
+              <h2 className="font-title text-sm font-bold text-slate-900 mb-2">
                 {activeTab === 'recent' ? 'Aucune commande récente' : 'Aucune commande'}
               </h2>
-              <p className="font-body text-sm text-slate-600 mb-6">
+              <p className="font-body text-[11px] text-slate-600 mb-6">
                 {activeTab === 'recent' 
                   ? 'Vous n\'avez pas de commandes récentes'
                   : 'Vous n\'avez pas encore passé de commande'}
@@ -305,23 +305,23 @@ function OrderCard({ order, index }: OrderCardProps) {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <h3 className="font-title text-lg font-bold text-slate-900">
+              <h3 className="font-title text-sm font-bold text-slate-900">
                 Commande #{order.id.slice(0, 8).toUpperCase()}
               </h3>
               <span
-                className={`font-body text-xs font-medium px-2.5 py-1 rounded-full ${statusConfig.color} flex items-center gap-1.5`}
+                className={`font-body text-[11px] font-medium px-2 py-0.5 rounded-full ${statusConfig.color} flex items-center gap-1.5`}
               >
-                <StatusIcon className="w-3.5 h-3.5" />
+                <StatusIcon className="w-3 h-3" />
                 {statusConfig.label}
               </span>
             </div>
-            <p className="font-body text-xs text-slate-500">{orderDate}</p>
+            <p className="font-body text-[11px] text-slate-500">{orderDate}</p>
           </div>
           <div className="text-right">
-            <p className="font-title text-xl font-bold text-indigo-600">
+            <p className="font-title text-sm font-bold text-indigo-600">
               {formatPrice(order.total_amount_xof)}
             </p>
-            <p className="font-body text-xs text-slate-500">
+            <p className="font-body text-[11px] text-slate-500">
               {order.items.length} {order.items.length > 1 ? 'articles' : 'article'}
             </p>
           </div>
@@ -334,15 +334,15 @@ function OrderCard({ order, index }: OrderCardProps) {
           {order.items.map((item, itemIndex) => (
             <div
               key={itemIndex}
-              className="flex items-center gap-3 text-sm"
+              className="flex items-center gap-3"
             >
               <div className="flex-1">
-                <p className="font-body font-medium text-slate-900">{item.title}</p>
-                <p className="font-body text-xs text-slate-500">
+                <p className="font-body text-sm font-medium text-slate-900">{item.title}</p>
+                <p className="font-body text-[11px] text-slate-500">
                   {formatPrice(item.price)} × {item.qty}
                 </p>
               </div>
-              <span className="font-body font-medium text-slate-900">
+              <span className="font-body text-sm font-medium text-slate-900">
                 {formatPrice(item.price * item.qty)}
               </span>
             </div>
@@ -352,14 +352,14 @@ function OrderCard({ order, index }: OrderCardProps) {
         {/* Delivery Info */}
         {order.delivery_address && (
           <div className="mt-4 pt-4 border-t border-slate-100">
-            <p className="font-body text-xs text-slate-500 mb-1">Adresse de livraison</p>
+            <p className="font-body text-[11px] text-slate-500 mb-1">Adresse de livraison</p>
             <p className="font-body text-sm text-slate-700">{order.delivery_address}</p>
           </div>
         )}
 
         {/* Payment Method */}
         <div className="mt-4 pt-4 border-t border-slate-100">
-          <p className="font-body text-xs text-slate-500 mb-1">Méthode de paiement</p>
+          <p className="font-body text-[11px] text-slate-500 mb-1">Méthode de paiement</p>
           <p className="font-body text-sm text-slate-700 capitalize">
             {order.payment_method === 'wave' ? 'Wave' : 
              order.payment_method === 'om' ? 'Orange Money' : 

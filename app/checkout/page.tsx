@@ -258,6 +258,30 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
+                {/* Delivery Details - Show only if payment is not cash */}
+                {formData.payment_method !== 'cash' && formData.payment_method !== 'pending' && (
+                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 space-y-3">
+                    <h3 className="font-body text-sm font-semibold text-indigo-900">
+                      Détails de livraison
+                    </h3>
+                    <div className="space-y-2 text-sm text-indigo-800">
+                      <p className="font-body">
+                        <span className="font-medium">Adresse de livraison :</span>{' '}
+                        {formData.delivery_address || 'Non spécifiée'}
+                      </p>
+                      <p className="font-body">
+                        <span className="font-medium">Téléphone :</span> {formData.customer_phone || 'Non spécifié'}
+                      </p>
+                      <p className="font-body">
+                        <span className="font-medium">Délai de livraison :</span> 10-15 jours ouvrés
+                      </p>
+                      <p className="font-body text-xs text-indigo-700 mt-2">
+                        Vous recevrez un SMS de confirmation avec le numéro de suivi une fois votre commande expédiée.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <button
                   type="submit"
                   disabled={loading}

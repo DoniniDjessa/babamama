@@ -223,48 +223,48 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 py-6">
-          {/* Image Gallery */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 py-8">
+          {/* Image Gallery - Walmart style: larger, cleaner */}
           <AnimatedContainer direction="up" delay={0.1}>
             <div className="space-y-4">
-              {/* Main Image */}
-              <div className="aspect-square relative bg-slate-100 rounded-2xl overflow-hidden">
+              {/* Main Image - Walmart style: full width, larger */}
+              <div className="aspect-square relative bg-white rounded-lg overflow-hidden border border-slate-200">
                 {images[selectedImageIndex] ? (
                   <Image
                     src={images[selectedImageIndex]}
                     alt={product.title}
                     fill
-                    className="object-cover"
+                    className="object-contain p-4"
                     priority
                     unoptimized={images[selectedImageIndex].includes('supabase.co')}
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
+                  <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
                     <Package className="w-24 h-24 text-slate-400" />
                   </div>
                 )}
               </div>
 
-              {/* Thumbnail Gallery */}
+              {/* Thumbnail Gallery - Walmart style: smaller thumbnails */}
               {images.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
                   {images.map((img, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedImageIndex(index)}
-                      className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                      className={`flex-shrink-0 w-16 h-16 rounded border-2 transition-all ${
                         selectedImageIndex === index
                           ? 'border-indigo-600 ring-2 ring-indigo-200'
-                          : 'border-slate-200 hover:border-slate-300'
+                          : 'border-slate-300 hover:border-slate-400'
                       }`}
                     >
                       <Image
                         src={img}
                         alt={`${product.title} - Image ${index + 1}`}
-                        width={80}
-                        height={80}
-                        className="object-cover w-full h-full"
+                        width={64}
+                        height={64}
+                        className="object-cover w-full h-full rounded"
                         unoptimized={img.includes('supabase.co')}
                       />
                     </button>
@@ -277,105 +277,139 @@ export default function ProductDetailPage() {
           {/* Product Info */}
           <AnimatedContainer direction="up" delay={0.2}>
             <div className="space-y-6">
-              {/* Title & Badges */}
+              {/* Title */}
               <div>
-                {product.is_new && (
-                  <span className="inline-block mb-2 bg-indigo-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                    🆕 Nouveau
-                  </span>
-                )}
-                <h1 className="font-title text-2xl sm:text-3xl font-bold text-slate-900 mb-3">
+                <h1 className="font-title text-sm font-bold text-slate-900 mb-3 leading-tight">
                   {product.title}
                 </h1>
-                <div className="flex items-center gap-4 text-sm text-slate-500">
-                  <span className="flex items-center gap-1">
-                    <Plane className="w-4 h-4" />
-                    Livraison 10-15 jours
+                
+                {/* Rating */}
+                {product.rating > 0 && (
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-3.5 h-3.5 ${
+                            i < Math.floor(product.rating)
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'text-slate-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <span className="font-body text-[11px] text-slate-600">
+                      ({product.rating.toFixed(1)})
+                    </span>
+                  </div>
+                )}
+
+                {/* Badge */}
+                {product.is_new && (
+                  <span className="inline-block mb-3 bg-indigo-600 text-white text-[11px] font-bold px-2 py-1 rounded">
+                    Nouveau
                   </span>
-                  <span className="flex items-center gap-1">
-                    <Package className="w-4 h-4" />
-                    Stock disponible
-                  </span>
-                </div>
+                )}
               </div>
 
               {/* Price */}
-              <div>
+              <div className="border-b border-slate-200 pb-4">
                 <div className="flex items-baseline gap-3">
-                  <span className="font-title text-3xl sm:text-4xl font-bold text-indigo-600">
-                    {formatPrice(product.final_price_xof)}
-                  </span>
+                  {product.compare_at_price && product.compare_at_price > product.final_price_xof ? (
+                    <>
+                      <div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="font-body text-[11px] text-slate-600">Maintenant</span>
+                          <span className="font-title text-sm font-bold text-indigo-600">
+                            {formatPrice(product.final_price_xof)}
+                          </span>
+                        </div>
+                        <div className="flex items-baseline gap-2 mt-1">
+                          <span className="font-body text-[11px] text-slate-500">Était</span>
+                          <span className="font-body text-[11px] text-slate-500 line-through">
+                            {formatPrice(product.compare_at_price)}
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <span className="font-title text-sm font-bold text-indigo-600">
+                      {formatPrice(product.final_price_xof)}
+                    </span>
+                  )}
                 </div>
               </div>
 
               {/* Quantity Selector */}
               <div>
-                <label className="font-body block text-sm font-medium text-slate-700 mb-2">
+                <label className="font-body block text-[11px] font-medium text-slate-900 mb-2">
                   Quantité
                 </label>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-10 h-10 rounded-lg border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors"
+                    className="w-10 h-10 rounded border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors"
                   >
-                    <Minus className="w-4 h-4 text-slate-600" />
+                    <Minus className="w-4 h-4 text-slate-700" />
                   </button>
-                  <span className="font-body text-lg font-medium text-slate-900 w-12 text-center">
+                  <span className="font-body text-sm font-semibold text-slate-900 w-12 text-center">
                     {quantity}
                   </span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    className="w-10 h-10 rounded-lg border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors"
+                    className="w-10 h-10 rounded border border-slate-300 flex items-center justify-center hover:bg-slate-50 transition-colors"
                   >
-                    <Plus className="w-4 h-4 text-slate-600" />
+                    <Plus className="w-4 h-4 text-slate-700" />
                   </button>
                 </div>
               </div>
 
               {/* Add to Cart Button */}
-              <div className="space-y-3">
+              <div className="space-y-3 pt-4">
                 <motion.button
                   onClick={handleAddToCart}
-                  whileTap={{ scale: 0.95 }}
-                  className="font-body w-full py-4 px-6 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-full font-bold shadow-lg shadow-indigo-500/30 hover:from-violet-700 hover:to-indigo-700 transition-all flex items-center justify-center gap-2"
+                  whileTap={{ scale: 0.98 }}
+                  className="font-body w-full py-3 px-6 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-bold rounded-lg shadow-lg shadow-indigo-500/30 hover:from-violet-700 hover:to-indigo-700 transition-all flex items-center justify-center gap-2"
                 >
                   {showSuccess ? (
                     <>
-                      <CheckCircle className="w-5 h-5" />
+                      <CheckCircle className="w-4 h-4" />
                       Ajouté au panier !
                     </>
                   ) : (
                     <>
-                      <ShoppingCart className="w-5 h-5" />
+                      <ShoppingCart className="w-4 h-4" />
                       Ajouter au panier
                     </>
                   )}
                 </motion.button>
               </div>
 
+              {/* Shipping Info */}
+              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Plane className="w-4 h-4 text-indigo-600" />
+                    <span className="font-body text-[11px] font-medium text-slate-900">Livraison 10-15 jours</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Package className="w-4 h-4 text-indigo-600" />
+                    <span className="font-body text-[11px] font-medium text-slate-900">Stock disponible</span>
+                  </div>
+                </div>
+              </div>
+
               {/* Description */}
               {product.description && (
-                <div>
-                  <h2 className="font-title text-lg font-bold text-slate-900 mb-3">
+                <div className="pt-4 border-t border-slate-200">
+                  <h2 className="font-title text-sm font-bold text-slate-900 mb-3">
                     Description
                   </h2>
-                  <div className="font-body text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+                  <div className="font-body text-[11px] text-slate-700 leading-relaxed whitespace-pre-line">
                     {product.description}
                   </div>
                 </div>
               )}
-
-              {/* Trust Badges */}
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200">
-                <div className="text-center p-3 bg-slate-50 rounded-lg">
-                  <Package className="w-6 h-6 text-indigo-600 mx-auto mb-1" />
-                  <p className="font-body text-xs font-medium text-slate-700">Livraison rapide</p>
-                </div>
-                <div className="text-center p-3 bg-slate-50 rounded-lg">
-                  <CheckCircle className="w-6 h-6 text-indigo-600 mx-auto mb-1" />
-                  <p className="font-body text-xs font-medium text-slate-700">Paiement sécurisé</p>
-                </div>
-              </div>
             </div>
           </AnimatedContainer>
         </div>
