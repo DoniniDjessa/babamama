@@ -19,13 +19,13 @@ export default function CategoriesMenu({ isOpen, onClose }: CategoriesMenuProps)
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay - Mobile & Desktop */}
+          {/* Overlay - Mobile only */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/50 z-50"
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
             onClick={onClose}
           />
 
@@ -36,6 +36,7 @@ export default function CategoriesMenu({ isOpen, onClose }: CategoriesMenuProps)
             exit={{ x: '-100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed inset-y-0 left-0 w-full max-w-[85vw] sm:max-w-sm bg-white shadow-xl z-50 md:hidden"
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="flex flex-col h-full">
               {/* Header */}
@@ -139,7 +140,8 @@ export default function CategoriesMenu({ isOpen, onClose }: CategoriesMenuProps)
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="hidden md:block fixed top-28 left-0 right-0 bg-white border-b border-slate-200 shadow-lg z-50"
+            className="hidden md:block fixed top-28 left-0 right-0 bg-white border-b border-slate-200 shadow-lg z-40"
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <div className="grid grid-cols-4 gap-6">

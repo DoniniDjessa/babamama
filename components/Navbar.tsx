@@ -9,6 +9,7 @@ import { getUser, signOut } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { MAIN_MENU_ITEMS } from '@/lib/menu-data';
 import CategoriesMenu from './CategoriesMenu';
+import { useCartStore } from '@/lib/store';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 export default function Navbar() {
@@ -17,7 +18,7 @@ export default function Navbar() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [cartCount] = useState(0); // TODO: Get from cart state
+  const cartCount = useCartStore((state) => state.getItemCount());
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showCategoriesMenu, setShowCategoriesMenu] = useState(false);
@@ -31,9 +32,16 @@ export default function Navbar() {
       // Migrate existing user to ali-customers if needed
       if (data.user) {
         try {
-          await fetch('/api/migrate-user', {
-            method: 'POST',
-          });
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (sessionData?.session?.access_token) {
+            await fetch('/api/migrate-user', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${sessionData.session.access_token}`,
+                'Content-Type': 'application/json',
+              },
+            });
+          }
         } catch (err) {
           console.error('Error migrating user:', err);
         }
@@ -45,17 +53,23 @@ export default function Navbar() {
     // Listen for auth state changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
       setLoading(false);
 
       // Migrate user when they log in
-      if (session?.user) {
-        fetch('/api/migrate-user', {
-          method: 'POST',
-        }).catch((err) => {
+      if (session?.user && session?.access_token) {
+        try {
+          await fetch('/api/migrate-user', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+        } catch (err) {
           console.error('Error migrating user:', err);
-        });
+        }
       }
     });
 
@@ -310,6 +324,14 @@ export default function Navbar() {
       isOpen={showCategoriesMenu}
       onClose={() => setShowCategoriesMenu(false)}
     />
+    
+    {/* Click outside handler for desktop menu */}
+    {showCategoriesMenu && (
+      <div
+        className="hidden md:block fixed inset-0 z-30"
+        onClick={() => setShowCategoriesMenu(false)}
+      />
+    )}
     </>
   );
 }
