@@ -137,14 +137,16 @@ export default function ProductDetailPage() {
         await navigator.share({
           title: product.title,
           text: `Découvrez ${product.title} sur Babamama`,
-          url: window.location.href,
+          url: typeof window !== 'undefined' ? window.location.href : '',
         });
       } catch (err) {
         // User cancelled or error
       }
     } else {
       // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.href);
+      if (typeof window !== 'undefined' && navigator.clipboard) {
+        navigator.clipboard.writeText(window.location.href);
+      }
       // Could show a toast here
     }
   };

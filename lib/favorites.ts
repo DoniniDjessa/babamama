@@ -79,17 +79,42 @@ export async function getFavoriteProductIds(authUserId: string): Promise<string[
  * Get all favorite products for a user (with product details)
  */
 export async function getFavoriteProducts(authUserId: string) {
+  // First, check if user is authenticated
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user || user.id !== authUserId) {
+    return { 
+      data: [], 
+      error: { 
+        message: 'Utilisateur non authentifié', 
+        name: 'AuthError' 
+      } as Error 
+    };
+  }
+
   const { data: favorites, error: favError } = await supabase
     .from('ali-favorites')
     .select('product_id')
     .eq('auth_user_id', authUserId)
     .order('created_at', { ascending: false });
 
-  if (favError || !favorites || favorites.length === 0) {
+  if (favError) {
+    // Log detailed error in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error fetching favorites:', favError);
+    }
     return { data: [], error: favError };
   }
 
+  if (!favorites || favorites.length === 0) {
+    return { data: [], error: null };
+  }
+
   const productIds = favorites.map((fav) => fav.product_id);
+
+  if (productIds.length === 0) {
+    return { data: [], error: null };
+  }
 
   const { data: products, error: productsError } = await supabase
     .from('ali-products')
@@ -97,6 +122,14 @@ export async function getFavoriteProducts(authUserId: string) {
     .in('id', productIds)
     .eq('is_active', true);
 
-  return { data: products || [], error: productsError };
+  if (productsError) {
+    // Log detailed error in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error fetching favorite products:', productsError);
+    }
+    return { data: [], error: productsError };
+  }
+
+  return { data: products || [], error: null };
 }
 

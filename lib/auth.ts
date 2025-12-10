@@ -115,7 +115,7 @@ export async function signIn(credentials: AuthCredentials) {
             message: result.error || 'Aucun utilisateur trouvé avec ce numéro de téléphone',
             name: 'UserNotFound',
             status: response.status,
-          } as any,
+          } as Error,
         };
       }
 
@@ -132,7 +132,7 @@ export async function signIn(credentials: AuthCredentials) {
           message: 'Une erreur est survenue lors de la recherche de votre compte',
           name: 'SignInError',
           status: 500,
-        } as any,
+        } as Error,
       };
     }
   }

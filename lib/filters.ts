@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 import type { Product } from './products';
-import type { FilterState, SortOption } from '@/components/FiltersDrawer';
+import type { FilterState } from '@/lib/useProductFilters';
 
 /**
  * Apply filters and sorting to products
@@ -23,12 +23,12 @@ export function applyFilters(
       p.final_price_xof <= filters.priceRange[1]
   );
 
-  // Filter: Subcategories
+  // Filter: Subcategories (match by subcategory or subsubcategory)
   if (filters.selectedSubcategories.length > 0) {
     filtered = filtered.filter(
       (p) =>
-        p.subcategory &&
-        filters.selectedSubcategories.includes(p.subcategory)
+        (p.subcategory && filters.selectedSubcategories.includes(p.subcategory)) ||
+        (p.subsubcategory && filters.selectedSubcategories.includes(p.subsubcategory))
     );
   }
 
@@ -74,12 +74,15 @@ export function getPriceRange(products: Product[]): { min: number; max: number }
 }
 
 /**
- * Get unique subcategories from products
+ * Get unique subcategories from products (includes both subcategory and subsubcategory)
  */
 export function getSubcategories(products: Product[]): string[] {
   const subcats = products
     .map((p) => p.subcategory)
     .filter((s): s is string => s !== null && s !== undefined);
-  return [...new Set(subcats)].sort();
+  const subsubcats = products
+    .map((p) => p.subsubcategory)
+    .filter((s): s is string => s !== null && s !== undefined);
+  return [...new Set([...subcats, ...subsubcats])].sort();
 }
 

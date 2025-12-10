@@ -29,6 +29,12 @@ export const MAIN_MENU_ITEMS: MenuItem[] = [
     highlight: true,
   },
   {
+    id: 'products',
+    label: 'Produits',
+    icon: ShoppingBag,
+    href: '/products',
+  },
+  {
     id: 'flash',
     label: 'Ventes Flash',
     icon: Zap,

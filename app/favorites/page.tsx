@@ -32,8 +32,12 @@ export default function FavoritesPage() {
         );
 
         if (favError) {
-          setError('Erreur lors du chargement de vos favoris');
-          console.error(favError);
+          // More detailed error message for debugging
+          const errorMessage = favError.message || 'Erreur lors du chargement de vos favoris';
+          setError(errorMessage);
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Favorites error:', favError);
+          }
         } else {
           setProducts(favoriteProducts || []);
         }
@@ -64,13 +68,25 @@ export default function FavoritesPage() {
       <AnimatedContainer direction="up" delay={0.1}>
         <div className="min-h-[calc(100vh-100px)] bg-slate-50 flex items-center justify-center p-4">
           <div className="text-center max-w-md">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+              <Heart className="w-8 h-8 text-red-600" />
+            </div>
+            <h2 className="font-title text-xl font-bold text-slate-900 mb-2">Erreur</h2>
             <p className="font-body text-sm text-red-600 mb-6">{error}</p>
-            <Link
-              href="/"
-              className="font-body inline-block px-6 py-3 bg-indigo-600 text-white rounded-full font-medium hover:bg-indigo-700 transition-colors"
-            >
-              Retour à l'accueil
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                href="/products"
+                className="font-body inline-block px-6 py-3 bg-indigo-600 text-white rounded-full font-medium hover:bg-indigo-700 transition-colors"
+              >
+                Voir les produits
+              </Link>
+              <Link
+                href="/"
+                className="font-body inline-block px-6 py-3 border border-slate-300 text-slate-700 rounded-full font-medium hover:bg-slate-50 transition-colors"
+              >
+                Retour à l'accueil
+              </Link>
+            </div>
           </div>
         </div>
       </AnimatedContainer>

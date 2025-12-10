@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Filter } from 'lucide-react';
 import { searchProducts } from '@/lib/products';
@@ -11,7 +11,7 @@ import { applyFilters, getPriceRange, getSubcategories } from '@/lib/filters';
 import type { Product } from '@/lib/products';
 import type { FilterState } from '@/components/FiltersDrawer';
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const query = searchParams.get('q') || '';
@@ -174,6 +174,21 @@ export default function SearchPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="font-body text-slate-600">Chargement...</p>
+        </div>
+      </div>
+    }>
+      <SearchContent />
+    </Suspense>
   );
 }
 

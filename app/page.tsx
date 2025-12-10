@@ -167,12 +167,12 @@ export default function HomePage() {
           <div className="text-center py-12 px-4">
             <p className="font-body text-sm text-slate-500">
               Aucun produit disponible pour le moment
-            </p>
-          </div>
+          </p>
+        </div>
         ) : (
           <>
-            {/* Enhanced Grid - 2 columns with staggered animation */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 px-4">
+            {/* Enhanced Grid - Larger cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 px-4">
               {products.map((product, index) => (
                 <AnimatedContainer
                   key={product.id}
@@ -193,7 +193,7 @@ export default function HomePage() {
                       rating={product.rating ?? 0}
                       isNew={product.is_new ?? false}
                       description={product.description || undefined}
-                      compact={true}
+                      compact={false}
                       stockQuantity={product.stock_quantity ?? undefined}
                       minQuantityToSell={product.min_quantity_to_sell ?? undefined}
                       specs={product.specs ?? []}
@@ -220,7 +220,7 @@ export default function HomePage() {
             )}
           </>
         )}
-      </div>
+        </div>
 
       {/* SECTION H: Social Proof */}
       <SocialProof />

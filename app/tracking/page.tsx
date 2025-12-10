@@ -1,15 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Package, Search, CheckCircle, Clock, Truck, XCircle } from 'lucide-react';
-import { getOrdersByPhone } from '@/lib/orders';
+import { Package, CheckCircle, Clock, Truck, XCircle, ArrowRight } from 'lucide-react';
+import { getUser } from '@/lib/auth';
+import { getCustomerByAuthId } from '@/lib/customers';
+import { getOrdersByPhone, type Order } from '@/lib/orders';
 import { formatPrice } from '@/lib/products';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import AnimatedContainer from '@/components/AnimatedContainer';
-import type { Order } from '@/lib/orders';
+import Link from 'next/link';
 
 const STATUS_CONFIG: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; color: string; bgColor: string }> = {
   pending: {
@@ -46,182 +48,227 @@ const STATUS_CONFIG: Record<string, { label: string; icon: React.ComponentType<{
 
 export default function TrackingPage() {
   const router = useRouter();
-  const [phone, setPhone] = useState('');
   const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searched, setSearched] = useState(false);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!phone.trim()) {
-      setError('Veuillez entrer un numéro de téléphone');
-      return;
-    }
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const { data: authUser, error: authError } = await getUser();
 
-    setLoading(true);
-    setError(null);
-    setSearched(true);
-
-    try {
-      const { data, error: fetchError } = await getOrdersByPhone(phone.trim());
-      if (fetchError) {
-        setError('Erreur lors de la recherche. Vérifiez votre numéro de téléphone.');
-        console.error(fetchError);
-        setOrders([]);
-      } else {
-        setOrders(data || []);
-        if (!data || data.length === 0) {
-          setError('Aucune commande trouvée pour ce numéro de téléphone');
+        if (authError || !authUser?.user) {
+          // If not logged in, show search form (guest tracking)
+          setLoading(false);
+          return;
         }
+
+        // Get customer info
+        const { data: customer, error: customerError } = await getCustomerByAuthId(
+          authUser.user.id
+        );
+
+        if (customerError) {
+          console.error('Customer error:', customerError);
+          setError('Impossible de charger vos informations. Veuillez vous reconnecter.');
+          setLoading(false);
+          return;
+        }
+
+        if (!customer) {
+          setError('Profil utilisateur non trouvé. Veuillez vous reconnecter.');
+          setLoading(false);
+          return;
+        }
+
+        // Get customer phone - use as is, let getOrdersByPhone handle normalization
+        const customerPhone = customer.phone || '';
+        
+        if (!customerPhone) {
+          setError('Numéro de téléphone non trouvé dans votre profil');
+          setLoading(false);
+          return;
+        }
+
+        // Get orders by phone - function will handle normalization
+        const { data: ordersData, error: ordersError } = await getOrdersByPhone(customerPhone);
+
+        if (ordersError) {
+          setError('Erreur lors du chargement de vos commandes');
+          console.error('Orders error:', ordersError);
+        } else {
+          // Sort by date (newest first)
+          const sortedOrders = (ordersData || []).sort((a, b) => 
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+          setOrders(sortedOrders);
+        }
+      } catch (err) {
+        setError('Une erreur est survenue');
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError('Une erreur est survenue');
-      console.error(err);
-      setOrders([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchOrders();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-[calc(100vh-100px)] bg-slate-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="font-body text-slate-600">Chargement de vos commandes...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <AnimatedContainer direction="up" delay={0.1}>
+        <div className="min-h-[calc(100vh-100px)] bg-slate-50 flex items-center justify-center p-4">
+          <div className="text-center max-w-md">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+              <XCircle className="w-8 h-8 text-red-600" />
+            </div>
+            <h2 className="font-title text-xl font-bold text-slate-900 mb-2">Erreur</h2>
+            <p className="font-body text-sm text-slate-600 mb-6">{error}</p>
+            <Link
+              href="/"
+              className="font-body inline-block px-6 py-3 bg-indigo-600 text-white rounded-full font-medium hover:bg-indigo-700 transition-colors"
+            >
+              Retour à l'accueil
+            </Link>
+          </div>
+        </div>
+      </AnimatedContainer>
+    );
+  }
+
+  if (orders.length === 0) {
+    return (
+      <AnimatedContainer direction="up" delay={0.1}>
+        <div className="min-h-[calc(100vh-100px)] bg-slate-50 flex items-center justify-center p-4">
+          <div className="text-center max-w-md">
+            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-slate-100 flex items-center justify-center">
+              <Package className="w-12 h-12 text-slate-400" />
+            </div>
+            <h2 className="font-title text-2xl font-bold text-slate-900 mb-2">
+              Aucune commande
+            </h2>
+            <p className="font-body text-sm text-slate-600 mb-6">
+              Vous n'avez pas encore passé de commande
+            </p>
+            <Link
+              href="/products"
+              className="font-body inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-full font-medium hover:bg-indigo-700 transition-colors"
+            >
+              Découvrir les produits
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </AnimatedContainer>
+    );
+  }
 
   return (
-    <div className="min-h-[calc(100vh-100px)] bg-slate-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
+    <div className="min-h-[calc(100vh-100px)] bg-slate-50 pb-6">
+      <div className="max-w-4xl mx-auto px-4 py-6">
         <AnimatedContainer direction="up" delay={0.1}>
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 mx-auto mb-4 bg-indigo-100 rounded-full flex items-center justify-center">
-              <Package className="w-8 h-8 text-indigo-600" />
-            </div>
-            <h1 className="font-title text-3xl sm:text-4xl font-bold text-slate-900 mb-2">
-              Suivre ma commande
-            </h1>
-            <p className="font-body text-sm text-slate-600">
-              Entrez votre numéro de téléphone pour suivre l'état de vos commandes
-            </p>
-          </div>
+          <h1 className="font-title text-2xl sm:text-3xl font-bold text-slate-900 mb-6">
+            Suivre ma commande
+          </h1>
         </AnimatedContainer>
 
-        {/* Search Form */}
-        <AnimatedContainer direction="up" delay={0.2}>
-          <form onSubmit={handleSearch} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1">
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+225 07 12 34 56 78"
-                  className="font-body w-full px-4 py-3 rounded-lg border border-slate-300 text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="font-body px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-lg font-bold shadow-lg shadow-indigo-500/30 hover:from-violet-700 hover:to-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Recherche...
-                  </>
-                ) : (
-                  <>
-                    <Search className="w-4 h-4" />
-                    Rechercher
-                  </>
-                )}
-              </button>
-            </div>
-            {error && (
-              <motion.p
-                initial={{ opacity: 0, y: -10 }}
+        <div className="space-y-4">
+          {orders.map((order, index) => {
+            const statusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
+            const StatusIcon = statusConfig.icon;
+            return (
+              <motion.div
+                key={order.id}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="font-body text-sm text-red-600 mt-3"
+                transition={{ delay: index * 0.05 }}
+                className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"
               >
-                {error}
-              </motion.p>
-            )}
-          </form>
-        </AnimatedContainer>
-
-        {/* Orders List */}
-        {searched && !loading && (
-          <AnimatedContainer direction="up" delay={0.3}>
-            {orders.length > 0 ? (
-              <div className="space-y-4">
-                {orders.map((order, index) => {
-                  const statusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
-                  const StatusIcon = statusConfig.icon;
-                  return (
-                    <motion.div
-                      key={order.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6"
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
-                        <div>
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className={`p-2 rounded-lg ${statusConfig.bgColor}`}>
-                              <StatusIcon className={`w-5 h-5 ${statusConfig.color}`} />
-                            </div>
-                            <div>
-                              <h3 className="font-title text-lg font-bold text-slate-900">
-                                Commande #{order.id.slice(0, 8).toUpperCase()}
-                              </h3>
-                              <p className="font-body text-xs text-slate-500">
-                                {format(new Date(order.created_at), 'dd MMMM yyyy à HH:mm', { locale: fr })}
-                              </p>
-                            </div>
-                          </div>
-                          <div className={`font-body inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${statusConfig.bgColor} ${statusConfig.color}`}>
-                            <StatusIcon className="w-3.5 h-3.5" />
-                            {statusConfig.label}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-title text-xl font-bold text-indigo-600">
-                            {formatPrice(order.total_amount_xof)}
-                          </p>
-                          <p className="font-body text-xs text-slate-500">
-                            {order.items.length} {order.items.length === 1 ? 'article' : 'articles'}
-                          </p>
-                        </div>
+                {/* Header */}
+                <div className="p-4 sm:p-6 border-b border-slate-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-title text-lg font-bold text-slate-900">
+                          Commande #{order.id.slice(0, 8).toUpperCase()}
+                        </h3>
+                        <span
+                          className={`font-body text-xs font-medium px-2.5 py-1 rounded-full ${statusConfig.bgColor} ${statusConfig.color} flex items-center gap-1.5`}
+                        >
+                          <StatusIcon className="w-3.5 h-3.5" />
+                          {statusConfig.label}
+                        </span>
                       </div>
+                      <p className="font-body text-xs text-slate-500">
+                        {format(new Date(order.created_at), 'dd MMMM yyyy à HH:mm', { locale: fr })}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-title text-xl font-bold text-indigo-600">
+                        {formatPrice(order.total_amount_xof)}
+                      </p>
+                      <p className="font-body text-xs text-slate-500">
+                        {order.items.length} {order.items.length > 1 ? 'articles' : 'article'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
-                      {/* Order Items */}
-                      <div className="border-t border-slate-200 pt-4">
-                        <h4 className="font-body text-sm font-medium text-slate-700 mb-3">Articles :</h4>
-                        <div className="space-y-2">
-                          {order.items.map((item: any, itemIndex: number) => (
-                            <div key={itemIndex} className="flex items-center justify-between text-sm">
-                              <span className="font-body text-slate-600">
-                                {item.qty}x {item.title}
-                              </span>
-                              <span className="font-body font-medium text-slate-900">
-                                {formatPrice(item.price * item.qty)}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Delivery Info */}
-                      {order.delivery_address && (
-                        <div className="border-t border-slate-200 pt-4 mt-4">
+                {/* Items */}
+                <div className="p-4 sm:p-6">
+                  <div className="space-y-3">
+                    {order.items.map((item: { title: string; price: number; qty: number }, itemIndex: number) => (
+                      <div
+                        key={itemIndex}
+                        className="flex items-center gap-3 text-sm"
+                      >
+                        <div className="flex-1">
+                          <p className="font-body font-medium text-slate-900">{item.title}</p>
                           <p className="font-body text-xs text-slate-500">
-                            <span className="font-medium">Adresse de livraison :</span> {order.delivery_address}
+                            {formatPrice(item.price)} × {item.qty}
                           </p>
                         </div>
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </div>
-            ) : null}
-          </AnimatedContainer>
-        )}
+                        <span className="font-body font-medium text-slate-900">
+                          {formatPrice(item.price * item.qty)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Delivery Info */}
+                  {order.delivery_address && (
+                    <div className="mt-4 pt-4 border-t border-slate-100">
+                      <p className="font-body text-xs text-slate-500 mb-1">Adresse de livraison</p>
+                      <p className="font-body text-sm text-slate-700">{order.delivery_address}</p>
+                    </div>
+                  )}
+
+                  {/* Payment Method */}
+                  <div className="mt-4 pt-4 border-t border-slate-100">
+                    <p className="font-body text-xs text-slate-500 mb-1">Méthode de paiement</p>
+                    <p className="font-body text-sm text-slate-700 capitalize">
+                      {order.payment_method === 'wave' ? 'Wave' : 
+                       order.payment_method === 'om' ? 'Orange Money' : 
+                       order.payment_method === 'cash' ? 'Paiement à la livraison' : 
+                       'Non spécifié'}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Search, ShoppingBag, User, LogOut, Menu } from 'lucide-react';
+import { Search, ShoppingBag, User, LogOut, Menu, X, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getUser, signOut } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
@@ -22,6 +22,7 @@ export default function Navbar() {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showCategoriesMenu, setShowCategoriesMenu] = useState(false);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -130,6 +131,14 @@ export default function Navbar() {
       <div className="border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setShowMobileSidebar(true)}
+              className="md:hidden p-1.5 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-50 transition-colors"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+
             {/* Logo */}
             <Link href="/" className="flex items-center">
               <h1 className="font-title text-lg font-black text-slate-900">
@@ -192,6 +201,14 @@ export default function Navbar() {
               >
                 <Search className="h-4 w-4" />
               </button>
+
+              {/* Favorites */}
+              <Link
+                href="/favorites"
+                className="relative p-1.5 text-slate-600 hover:text-slate-900 transition-colors rounded-lg hover:bg-slate-50"
+              >
+                <Heart className="h-4 w-4" />
+              </Link>
 
               {/* Profile */}
               <div className="relative flex items-center gap-1">
@@ -277,8 +294,8 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Menu Bar - Navigation */}
-      <div className="bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
+      {/* Menu Bar - Navigation (Desktop only) */}
+      <div className="hidden md:block bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-10 overflow-x-auto scrollbar-hide">
             <div className="flex items-center gap-0.5 min-w-max">
@@ -332,6 +349,118 @@ export default function Navbar() {
         onClick={() => setShowCategoriesMenu(false)}
       />
     )}
+
+    {/* Mobile Sidebar */}
+    <AnimatePresence>
+      {showMobileSidebar && (
+        <>
+          {/* Overlay */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowMobileSidebar(false)}
+            className="fixed inset-0 bg-black/50 z-50 md:hidden"
+          />
+
+          {/* Sidebar */}
+          <motion.div
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-y-0 left-0 w-full max-w-[85vw] sm:max-w-sm bg-white shadow-xl z-50 md:hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-slate-200">
+              <h2 className="font-title text-lg font-bold text-slate-900">Menu</h2>
+              <button
+                onClick={() => setShowMobileSidebar(false)}
+                className="p-2 rounded-full hover:bg-slate-100 transition-colors"
+              >
+                <X className="h-5 w-5 text-slate-600" />
+              </button>
+            </div>
+
+            {/* Menu Items */}
+            <div className="flex-1 overflow-y-auto py-2">
+              {MAIN_MENU_ITEMS.map((item, index) => {
+                if (item.type === 'trigger') {
+                  return (
+                    <motion.button
+                      key={item.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      onClick={() => {
+                        setShowMobileSidebar(false);
+                        handleCategoryClick();
+                      }}
+                      className={`font-body w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${
+                        item.highlight
+                          ? 'font-bold text-indigo-600 bg-indigo-50'
+                          : 'text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      {item.icon && <item.icon className="h-5 w-5" />}
+                      <span>{item.label}</span>
+                    </motion.button>
+                  );
+                }
+
+                return (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <Link
+                      href={item.href || '#'}
+                      onClick={() => setShowMobileSidebar(false)}
+                      className={`font-body w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${
+                        item.color || 'text-slate-700 hover:bg-slate-50'
+                      } ${item.highlight ? 'font-bold' : 'font-medium'}`}
+                    >
+                      {item.icon && <item.icon className="h-5 w-5" />}
+                      <span>{item.label}</span>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* Footer - User Info */}
+            <div className="border-t border-slate-200 p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                  <User className="h-5 w-5 text-indigo-600" />
+                </div>
+                <div>
+                  <p className="font-body text-sm font-medium text-slate-900">
+                    {userName || 'Utilisateur'}
+                  </p>
+                  <p className="font-body text-xs text-slate-500">
+                    {user?.email}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowMobileSidebar(false);
+                  handleSignOut();
+                }}
+                className="font-body w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                Déconnexion
+              </button>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
     </>
   );
 }

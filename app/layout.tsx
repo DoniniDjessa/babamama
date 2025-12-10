@@ -3,6 +3,7 @@ import { Fira_Sans_Condensed, Poppins } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import GlobalLoader from "@/components/GlobalLoader";
 
 const firaSansCondensed = Fira_Sans_Condensed({
   variable: "--font-fira-sans-condensed",
@@ -31,6 +32,7 @@ export default function RootLayout({
       <body
         className={`${firaSansCondensed.variable} ${poppins.variable} antialiased flex flex-col min-h-screen`}
       >
+        <GlobalLoader />
         <Navbar />
         <main className="flex-1">
           {children}

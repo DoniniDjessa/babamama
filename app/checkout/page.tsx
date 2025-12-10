@@ -219,7 +219,7 @@ export default function CheckoutPage() {
                         name="payment_method"
                         value="wave"
                         checked={formData.payment_method === 'wave'}
-                        onChange={(e) => setFormData({ ...formData, payment_method: e.target.value as any })}
+                        onChange={(e) => setFormData({ ...formData, payment_method: e.target.value as 'wave' | 'om' | 'cash' | 'pending' })}
                         className="w-5 h-5 text-indigo-600 focus:ring-indigo-500"
                       />
                       <div className="flex-1">
@@ -233,7 +233,7 @@ export default function CheckoutPage() {
                         name="payment_method"
                         value="om"
                         checked={formData.payment_method === 'om'}
-                        onChange={(e) => setFormData({ ...formData, payment_method: e.target.value as any })}
+                        onChange={(e) => setFormData({ ...formData, payment_method: e.target.value as 'wave' | 'om' | 'cash' | 'pending' })}
                         className="w-5 h-5 text-indigo-600 focus:ring-indigo-500"
                       />
                       <div className="flex-1">
@@ -247,7 +247,7 @@ export default function CheckoutPage() {
                         name="payment_method"
                         value="cash"
                         checked={formData.payment_method === 'cash'}
-                        onChange={(e) => setFormData({ ...formData, payment_method: e.target.value as any })}
+                        onChange={(e) => setFormData({ ...formData, payment_method: e.target.value as 'wave' | 'om' | 'cash' | 'pending' })}
                         className="w-5 h-5 text-indigo-600 focus:ring-indigo-500"
                       />
                       <div className="flex-1">

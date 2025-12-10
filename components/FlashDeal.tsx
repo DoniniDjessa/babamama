@@ -175,10 +175,10 @@ export default function FlashDeal() {
         >
           <Link
             href="/flash-sale"
-            className="font-body inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-full font-bold shadow-lg shadow-orange-500/30 hover:from-orange-700 hover:to-red-700 transition-all"
+            className="font-body inline-flex items-center gap-1.5 px-4 py-2 text-sm text-slate-600 hover:text-slate-900 font-medium transition-colors"
           >
-            Voir toutes les promos
-            <ArrowRight className="w-4 h-4" />
+            Voir
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </motion.div>
       </div>

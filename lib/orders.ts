@@ -63,15 +63,99 @@ export async function getOrderById(orderId: string) {
 }
 
 /**
+ * Normalize phone number - same logic as in checkout
+ */
+function normalizePhoneForOrder(phone: string): string {
+  // Same normalization as in checkout page
+  return phone.replace(/\s|-|\(|\)/g, '');
+}
+
+/**
  * Get orders by customer phone number
+ * Tries multiple phone number formats to match orders
  */
 export async function getOrdersByPhone(phone: string) {
-  const normalizedPhone = phone.replace(/\s|-|\(|\)/g, '');
-  const { data, error } = await supabase
+  if (!phone || phone.trim() === '') {
+    return { data: [], error: null };
+  }
+
+  // Normalize phone: remove spaces, dashes, parentheses (same as checkout)
+  const normalizedPhone = normalizePhoneForOrder(phone);
+  
+  // Generate all possible variants
+  const phoneVariants = new Set<string>();
+  
+  // Add original
+  phoneVariants.add(phone);
+  
+  // Add normalized (no spaces/dashes/parentheses)
+  phoneVariants.add(normalizedPhone);
+  
+  // Add with + prefix if not present
+  if (!normalizedPhone.startsWith('+')) {
+    phoneVariants.add(`+${normalizedPhone}`);
+  }
+  
+  // Add without + prefix
+  const withoutPlus = normalizedPhone.replace(/^\+/, '');
+  phoneVariants.add(withoutPlus);
+  
+  // Also try with country code variations (for CI: +225 or 225)
+  if (withoutPlus.startsWith('225')) {
+    phoneVariants.add(withoutPlus);
+    phoneVariants.add(`+${withoutPlus}`);
+  } else if (withoutPlus.startsWith('0')) {
+    // If starts with 0, try with 225 prefix
+    const withCountryCode = `225${withoutPlus.substring(1)}`;
+    phoneVariants.add(withCountryCode);
+    phoneVariants.add(`+${withCountryCode}`);
+  }
+
+  const variantsArray = Array.from(phoneVariants);
+  
+  // Debug logging (only in development)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Searching orders with phone variants:', { 
+      original: phone, 
+      normalized: normalizedPhone,
+      variants: variantsArray 
+    });
+  }
+
+  // Try exact matches first (more efficient)
+  let { data, error } = await supabase
     .from('ali-orders')
     .select('*')
-    .eq('customer_phone', normalizedPhone)
+    .in('customer_phone', variantsArray)
     .order('created_at', { ascending: false });
+
+  // If no exact matches, try partial matches (ilike)
+  if ((!data || data.length === 0) && variantsArray.length > 0) {
+    // Build OR query for partial matches
+    const orConditions = variantsArray
+      .map(v => `customer_phone.ilike.%${v}%`)
+      .join(',');
+    
+    const { data: partialData, error: partialError } = await supabase
+      .from('ali-orders')
+      .select('*')
+      .or(orConditions)
+      .order('created_at', { ascending: false });
+    
+    if (partialData && partialData.length > 0) {
+      data = partialData;
+      error = partialError;
+    }
+  }
+
+  // Debug logging (only in development)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Orders query result:', { 
+      found: data?.length || 0, 
+      error: error?.message,
+      variants: variantsArray 
+    });
+  }
 
   return { data: data as Order[] | null, error };
 }

@@ -69,8 +69,17 @@ export default function OrdersPage() {
           return;
         }
 
-        // Get orders by phone
-        const { data: ordersData, error: ordersError } = await getOrdersByPhone(customer.phone || '');
+        // Get customer phone - use as is, let getOrdersByPhone handle normalization
+        const customerPhone = customer.phone || '';
+        
+        if (!customerPhone) {
+          setError('Numéro de téléphone non trouvé dans votre profil');
+          setLoading(false);
+          return;
+        }
+
+        // Get orders by phone - function will handle normalization
+        const { data: ordersData, error: ordersError } = await getOrdersByPhone(customerPhone);
 
         if (ordersError) {
           setError('Erreur lors du chargement de vos commandes');
