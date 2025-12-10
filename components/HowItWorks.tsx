@@ -26,7 +26,7 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section className="py-8 sm:py-12 px-4 bg-white border-y border-slate-100">
+    <section className="py-4 sm:py-6 md:py-8 px-2 sm:px-4 bg-white border-y border-slate-100">
       <div className="max-w-7xl mx-auto">
         <AnimatedContainer direction="up" delay={0.1}>
           <h2 className="font-title text-xl sm:text-2xl font-bold text-slate-900 mb-6 text-center">

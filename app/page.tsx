@@ -6,8 +6,8 @@ import { ArrowRight } from 'lucide-react';
 import { getProducts } from '@/lib/products';
 import ProductCard from '@/components/ProductCard';
 import HeroSection from '@/components/HeroSection';
-import TrustBar from '@/components/TrustBar';
 import CategoryScroll from '@/components/CategoryScroll';
+import ScrollToTop from '@/components/ScrollToTop';
 import FlashDeal from '@/components/FlashDeal';
 import HowItWorks from '@/components/HowItWorks';
 import BentoGrid from '@/components/BentoGrid';
@@ -109,9 +109,6 @@ export default function HomePage() {
       {/* SECTION B: Category Scroll */}
       <CategoryScroll />
 
-      {/* SECTION C: Trust Bar */}
-      <TrustBar />
-
       {/* SECTION D: How It Works */}
       <HowItWorks />
 
@@ -122,9 +119,9 @@ export default function HomePage() {
       <BentoGrid />
 
       {/* SECTION G: Masonry Feed */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 md:py-8">
         <AnimatedContainer direction="up" delay={0.2}>
-          <div className="flex items-center justify-between mb-6 px-4">
+          <div className="flex items-center justify-between mb-4 sm:mb-6 px-2 sm:px-4">
             <div>
               <h2 className="font-title text-2xl sm:text-3xl font-bold text-slate-900 mb-1">
                 Juste pour vous
@@ -143,8 +140,8 @@ export default function HomePage() {
           </div>
         </AnimatedContainer>
 
-        {loading && products.length === 0 ? (
-          <div className="grid grid-cols-2 gap-4 px-4">
+                 {loading && products.length === 0 ? (
+                   <div className="grid grid-cols-2 gap-2 sm:gap-4 px-2 sm:px-4">
             {[...Array(8)].map((_, i) => (
               <div
                 key={i}
@@ -172,7 +169,7 @@ export default function HomePage() {
         ) : (
           <>
             {/* Enhanced Grid - Larger cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 px-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 px-2 sm:px-4">
               {products.map((product, index) => (
                 <AnimatedContainer
                   key={product.id}
@@ -227,6 +224,9 @@ export default function HomePage() {
 
       {/* SECTION I: WhatsApp VIP */}
       <WhatsAppVIP />
+
+      {/* Scroll to Top Button */}
+      <ScrollToTop />
     </div>
   );
 }

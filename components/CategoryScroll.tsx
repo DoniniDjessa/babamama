@@ -32,7 +32,7 @@ const categories: Category[] = [
 
 export default function CategoryScroll() {
   return (
-    <div className="flex gap-4 overflow-x-auto px-4 py-6 scrollbar-hide">
+    <div className="flex gap-3 sm:gap-4 overflow-x-auto px-2 sm:px-4 py-3 sm:py-4 md:py-6 scrollbar-hide">
       {categories.map((category, index) => {
         const Icon = category.icon;
         return (

@@ -14,7 +14,7 @@ export default function HeroSection() {
       <div className="absolute inset-0">
         {!imageError ? (
           <Image
-            src="/hero-banner.jpg"
+            src="/banner.jpg"
             alt="Hero Banner"
             fill
             className="object-cover"
@@ -22,18 +22,20 @@ export default function HeroSection() {
             onError={() => setImageError(true)}
           />
         ) : null}
-        {/* Fallback gradient background if image doesn't load */}
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-700">
-          {/* Optional pattern overlay */}
-          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
-        </div>
+        {/* Fallback gradient background if image doesn't load - Only show if image error */}
+        {imageError && (
+          <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-700">
+            {/* Optional pattern overlay */}
+            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
+          </div>
+        )}
       </div>
       
-      {/* Overlay gradient for text readability */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+      {/* Overlay gradient for text readability - Very light overlay to show banner image */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/5 to-transparent" />
       
       {/* Content */}
-      <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8">
+      {/* <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -53,7 +55,7 @@ export default function HeroSection() {
             Voir les Promos
           </Link>
         </motion.div>
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -9,7 +9,7 @@ export default function WhatsAppVIP() {
   const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/\s/g, '')}?text=${encodeURIComponent('Bonjour, je souhaite rejoindre le canal VIP Babamama pour voir les arrivages en avant-première !')}`;
 
   return (
-    <section className="py-12 sm:py-16 px-4 bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900">
+    <section className="py-6 sm:py-8 md:py-12 px-2 sm:px-4 bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900">
       <div className="max-w-4xl mx-auto text-center">
         <AnimatedContainer direction="up" delay={0.1}>
           <motion.div

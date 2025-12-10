@@ -88,6 +88,79 @@ export async function searchProducts(query: string) {
 }
 
 /**
+ * Get flash sale products (from admin)
+ * According to recap.md, we should prioritize admin flash sales
+ */
+export async function getFlashSaleProducts() {
+  try {
+    const now = new Date().toISOString();
+    
+    // Get active flash sale products from admin
+    const { data: adminFlashProducts, error: adminError } = await supabase
+      .from('ali-products')
+      .select('*')
+      .eq('is_active', true)
+      .not('flash_sale_end_at', 'is', null)
+      .gt('flash_sale_end_at', now)
+      .order('flash_sale_end_at', { ascending: true }); // Most urgent first
+
+    if (adminError) {
+      // Silently fail and return empty array - CORS or other errors shouldn't break the app
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Error fetching admin flash sales (falling back to top rated):', adminError.message);
+      }
+      return { 
+        data: [], 
+        error: null, // Don't propagate error to avoid breaking the UI
+        source: 'none' as const
+      };
+    }
+
+    // If admin flash products exist, return them
+    if (adminFlashProducts && adminFlashProducts.length > 0) {
+      return { 
+        data: adminFlashProducts as Product[], 
+        error: null,
+        source: 'admin' as const
+      };
+    }
+
+    // Fallback: return empty array (no frontend flash sales for now)
+    return { 
+      data: [], 
+      error: null,
+      source: 'none' as const
+    };
+  } catch (err) {
+    // Catch any unexpected errors (like CORS)
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Unexpected error fetching flash sales (falling back to top rated):', err);
+    }
+    return { 
+      data: [], 
+      error: null,
+      source: 'none' as const
+    };
+  }
+}
+
+/**
+ * Get top rated products for flash sale carousel
+ * Returns the 10 best rated products
+ */
+export async function getTopRatedProducts(limit: number = 10) {
+  const { data, error } = await supabase
+    .from('ali-products')
+    .select('*')
+    .eq('is_active', true)
+    .order('rating', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  return { data: data as Product[] | null, error };
+}
+
+/**
  * Format price to FCFA
  */
 export function formatPrice(price: number): string {

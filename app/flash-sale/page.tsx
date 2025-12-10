@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Zap, Clock } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { getFlashSaleProducts, type Product } from '@/lib/products';
 import ProductCard from '@/components/ProductCard';
 import AnimatedContainer from '@/components/AnimatedContainer';
-import type { Product } from '@/lib/products';
 
 export default function FlashSalePage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -17,19 +16,15 @@ export default function FlashSalePage() {
   useEffect(() => {
     const fetchFlashProducts = async () => {
       try {
-        const now = new Date().toISOString();
-        const { data, error } = await supabase
-          .from('ali-products')
-          .select('*')
-          .eq('is_active', true)
-          .not('flash_sale_end_at', 'is', null)
-          .gt('flash_sale_end_at', now)
-          .order('flash_sale_end_at', { ascending: true });
+        // Use the getFlashSaleProducts function from lib/products
+        const { data, error } = await getFlashSaleProducts();
 
         if (error) {
-          console.error('Error fetching flash products:', error);
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Error fetching flash products:', error);
+          }
         } else {
-          setProducts((data as Product[]) || []);
+          setProducts(data || []);
           
           // Calculate time left from first product
           if (data && data.length > 0 && data[0].flash_sale_end_at) {
@@ -47,7 +42,9 @@ export default function FlashSalePage() {
           }
         }
       } catch (err) {
-        console.error('Error:', err);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error:', err);
+        }
       } finally {
         setLoading(false);
       }
