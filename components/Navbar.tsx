@@ -128,7 +128,13 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-14">
             {/* Mobile Menu Button */}
             <button
-              onClick={() => setShowMobileSidebar(true)}
+              onClick={() => {
+                if (user) {
+                  setShowMobileSidebar(true);
+                } else {
+                  router.push('/login');
+                }
+              }}
               className="md:hidden p-1.5 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-50 transition-colors"
             >
               <Menu className="h-5 w-5" />
@@ -305,13 +311,12 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Menu Bar - Navigation (Desktop only) - Only show if user is logged in */}
-      {user && (
-        <div className="hidden md:block bg-gradient-to-r from-slate-50 to-white border-b border-slate-200 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center h-10 overflow-x-auto scrollbar-hide">
-              <div className="flex items-center gap-0.5 min-w-max">
-                {MAIN_MENU_ITEMS.map((item) => {
+      {/* Menu Bar - Navigation (Desktop only) */}
+      <div className="hidden md:block bg-gradient-to-r from-slate-50 to-white border-b border-slate-200 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center h-10 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-0.5 min-w-max">
+              {MAIN_MENU_ITEMS.map((item) => {
                 if (item.type === 'trigger') {
                   return (
                     <button
@@ -342,29 +347,24 @@ export default function Navbar() {
                   </Link>
                 );
               })}
-              </div>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </nav>
 
-    {/* Categories Menu - Only show if user is logged in */}
-    {user && (
-      <>
-        <CategoriesMenu
-          isOpen={showCategoriesMenu}
-          onClose={() => setShowCategoriesMenu(false)}
-        />
-        
-        {/* Click outside handler for desktop menu */}
-        {showCategoriesMenu && (
-          <div
-            className="hidden md:block fixed inset-0 z-30"
-            onClick={() => setShowCategoriesMenu(false)}
-          />
-        )}
-      </>
+    {/* Categories Menu */}
+    <CategoriesMenu
+      isOpen={showCategoriesMenu}
+      onClose={() => setShowCategoriesMenu(false)}
+    />
+    
+    {/* Click outside handler for desktop menu */}
+    {showCategoriesMenu && (
+      <div
+        className="hidden md:block fixed inset-0 z-30"
+        onClick={() => setShowCategoriesMenu(false)}
+      />
     )}
 
     {/* Mobile Sidebar - Only show if user is logged in */}
