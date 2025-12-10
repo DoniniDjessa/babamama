@@ -114,19 +114,14 @@ export default function Navbar() {
     }
   };
 
-  if (loading) {
-    return null;
-  }
+  // Always show navbar structure, even when loading or no user
+  // This ensures it's always in the DOM for proper z-index stacking
 
-  if (!user) {
-    return null;
-  }
-
-  const userName = formatUserName(user.user_metadata?.name);
+  const userName = user ? formatUserName(user.user_metadata?.name) : '';
 
   return (
     <>
-      <nav className="sticky top-0 z-[100] bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-sm">
+      <nav className="sticky top-0 z-[100] bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-sm" style={{ position: 'sticky', zIndex: 100 }}>
       {/* Top Bar - Branding & Tools */}
       <div className="border-b border-slate-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -202,27 +197,30 @@ export default function Navbar() {
                 <Search className="h-4 w-4" />
               </button>
 
-              {/* Favorites */}
-              <Link
-                href="/favorites"
-                className="relative p-1.5 text-slate-600 hover:text-slate-900 transition-colors rounded-lg hover:bg-slate-50"
-              >
-                <Heart className="h-4 w-4" />
-              </Link>
+              {/* Favorites - Only show if user is logged in */}
+              {user && (
+                <Link
+                  href="/favorites"
+                  className="relative p-1.5 text-slate-600 hover:text-slate-900 transition-colors rounded-lg hover:bg-slate-50"
+                >
+                  <Heart className="h-4 w-4" />
+                </Link>
+              )}
 
               {/* Profile */}
-              <div className="relative flex items-center gap-1">
-                <button
-                  onClick={() => setShowProfileMenu(!showProfileMenu)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
-                >
-                  <User className="h-4 w-4 text-slate-600" />
-                  {userName && (
-                    <span className="font-body text-xs font-medium text-slate-700 hidden sm:inline">
-                      {userName}
-                    </span>
-                  )}
-                </button>
+              {user ? (
+                <div className="relative flex items-center gap-1">
+                  <button
+                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
+                  >
+                    <User className="h-4 w-4 text-slate-600" />
+                    {userName && (
+                      <span className="font-body text-xs font-medium text-slate-700 hidden sm:inline">
+                        {userName}
+                      </span>
+                    )}
+                  </button>
 
                 {/* Profile Dropdown */}
                 <AnimatePresence>
@@ -275,31 +273,45 @@ export default function Navbar() {
                     </>
                   )}
                 </AnimatePresence>
-              </div>
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  <User className="h-4 w-4 text-slate-600" />
+                  <span className="font-body text-xs font-medium text-slate-700 hidden sm:inline">
+                    Connexion
+                  </span>
+                </Link>
+              )}
 
               {/* Cart */}
-              <Link
-                href="/cart"
-                className="relative p-1.5 text-slate-600 hover:text-slate-900 transition-colors rounded-lg hover:bg-slate-50"
-              >
-                <ShoppingBag className="h-4 w-4" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
-                    {cartCount > 9 ? '9+' : cartCount}
-                  </span>
-                )}
-              </Link>
+              {user && (
+                <Link
+                  href="/cart"
+                  className="relative p-1.5 text-slate-600 hover:text-slate-900 transition-colors rounded-lg hover:bg-slate-50"
+                >
+                  <ShoppingBag className="h-4 w-4" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                      {cartCount > 9 ? '9+' : cartCount}
+                    </span>
+                  )}
+                </Link>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Menu Bar - Navigation (Desktop only) */}
-      <div className="hidden md:block bg-gradient-to-r from-slate-50 to-white border-b border-slate-200 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-10 overflow-x-auto scrollbar-hide">
-            <div className="flex items-center gap-0.5 min-w-max">
-              {MAIN_MENU_ITEMS.map((item) => {
+      {/* Menu Bar - Navigation (Desktop only) - Only show if user is logged in */}
+      {user && (
+        <div className="hidden md:block bg-gradient-to-r from-slate-50 to-white border-b border-slate-200 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center h-10 overflow-x-auto scrollbar-hide">
+              <div className="flex items-center gap-0.5 min-w-max">
+                {MAIN_MENU_ITEMS.map((item) => {
                 if (item.type === 'trigger') {
                   return (
                     <button
@@ -330,62 +342,68 @@ export default function Navbar() {
                   </Link>
                 );
               })}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </nav>
 
-    {/* Categories Menu */}
-    <CategoriesMenu
-      isOpen={showCategoriesMenu}
-      onClose={() => setShowCategoriesMenu(false)}
-    />
-    
-    {/* Click outside handler for desktop menu */}
-    {showCategoriesMenu && (
-      <div
-        className="hidden md:block fixed inset-0 z-30"
-        onClick={() => setShowCategoriesMenu(false)}
-      />
+    {/* Categories Menu - Only show if user is logged in */}
+    {user && (
+      <>
+        <CategoriesMenu
+          isOpen={showCategoriesMenu}
+          onClose={() => setShowCategoriesMenu(false)}
+        />
+        
+        {/* Click outside handler for desktop menu */}
+        {showCategoriesMenu && (
+          <div
+            className="hidden md:block fixed inset-0 z-30"
+            onClick={() => setShowCategoriesMenu(false)}
+          />
+        )}
+      </>
     )}
 
-    {/* Mobile Sidebar */}
-    <AnimatePresence>
-      {showMobileSidebar && (
-        <>
-          {/* Overlay */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowMobileSidebar(false)}
-            className="fixed inset-0 bg-black/50 z-50 md:hidden"
-          />
+    {/* Mobile Sidebar - Only show if user is logged in */}
+    {user && (
+      <AnimatePresence>
+        {showMobileSidebar && (
+          <>
+            {/* Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMobileSidebar(false)}
+              className="fixed inset-0 bg-black/50 z-50 md:hidden"
+            />
 
-          {/* Sidebar */}
-          <motion.div
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 left-0 w-full max-w-[85vw] sm:max-w-sm bg-white shadow-xl z-50 md:hidden flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-slate-200">
-              <h2 className="font-title text-lg font-bold text-slate-900">Menu</h2>
-              <button
-                onClick={() => setShowMobileSidebar(false)}
-                className="p-2 rounded-full hover:bg-slate-100 transition-colors"
-              >
-                <X className="h-5 w-5 text-slate-600" />
-              </button>
-            </div>
+            {/* Sidebar */}
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 left-0 w-full max-w-[85vw] sm:max-w-sm bg-white shadow-xl z-50 md:hidden flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-slate-200">
+                <h2 className="font-title text-lg font-bold text-slate-900">Menu</h2>
+                <button
+                  onClick={() => setShowMobileSidebar(false)}
+                  className="p-2 rounded-full hover:bg-slate-100 transition-colors"
+                >
+                  <X className="h-5 w-5 text-slate-600" />
+                </button>
+              </div>
 
-            {/* Menu Items */}
-            <div className="flex-1 overflow-y-auto py-2">
-              {MAIN_MENU_ITEMS.map((item, index) => {
+              {/* Menu Items */}
+              <div className="flex-1 overflow-y-auto py-2">
+                {MAIN_MENU_ITEMS.map((item, index) => {
                 if (item.type === 'trigger') {
                   return (
                     <motion.button
@@ -431,36 +449,37 @@ export default function Navbar() {
               })}
             </div>
 
-            {/* Footer - User Info */}
-            <div className="border-t border-slate-200 p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                  <User className="h-5 w-5 text-indigo-600" />
+              {/* Footer - User Info */}
+              <div className="border-t border-slate-200 p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <User className="h-5 w-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <p className="font-body text-sm font-medium text-slate-900">
+                      {userName || 'Utilisateur'}
+                    </p>
+                    <p className="font-body text-xs text-slate-500">
+                      {user?.email}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-body text-sm font-medium text-slate-900">
-                    {userName || 'Utilisateur'}
-                  </p>
-                  <p className="font-body text-xs text-slate-500">
-                    {user?.email}
-                  </p>
-                </div>
+                <button
+                  onClick={() => {
+                    setShowMobileSidebar(false);
+                    handleSignOut();
+                  }}
+                  className="font-body w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Déconnexion
+                </button>
               </div>
-              <button
-                onClick={() => {
-                  setShowMobileSidebar(false);
-                  handleSignOut();
-                }}
-                className="font-body w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                <LogOut className="h-4 w-4" />
-                Déconnexion
-              </button>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    )}
     </>
   );
 }

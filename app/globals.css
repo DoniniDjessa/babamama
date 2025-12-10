@@ -125,4 +125,12 @@ nav[class*="sticky"] {
   position: sticky !important;
   z-index: 100 !important;
   background-color: white !important;
+  top: 0 !important;
+}
+
+/* Ensure navbar is always visible */
+nav {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
